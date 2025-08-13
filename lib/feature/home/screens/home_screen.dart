@@ -66,8 +66,7 @@ class HomeScreen extends StatelessWidget {
               //Navigator.pushNamed(context, "/scanner");
               Navigator.pushNamed(
                 context,
-                '/scanneddetails',
-                arguments: "code",
+                '/scanner'
               );
             }, prefixIcon: Icons.document_scanner_outlined,backgroundColor: redcolor,),
             SizedBox(height: 10,),

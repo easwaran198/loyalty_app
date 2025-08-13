@@ -103,13 +103,13 @@ class ApiService {
 
     return json.decode(response.body);
   }
-  Future<Map<String, dynamic>> scanDetails() async {
+  Future<Map<String, dynamic>> scanDetails(String coupon) async {
     final prefs = await SharedPreferences.getInstance();
     final userid = prefs.getString("userid") ?? "";
     final token = prefs.getString("token") ?? "";
 
     var request = {
-      "coupon_id": "2", // Static for now
+      "coupon_id": coupon, // Static for now
       "userid": userid,
     };
 

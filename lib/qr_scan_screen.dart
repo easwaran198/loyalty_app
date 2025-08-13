@@ -1,32 +1,70 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
-class QRScannerScreen extends StatelessWidget {
+class QRScannerScreen extends StatefulWidget {
   const QRScannerScreen({super.key});
+
+  @override
+  State<QRScannerScreen> createState() => _QRScannerScreenState();
+}
+
+class _QRScannerScreenState extends State<QRScannerScreen> {
+  final MobileScannerController controller = MobileScannerController();
+  bool _isScanning = true; // control scanning state
+  bool _isProcessing = false; // prevent multiple triggers
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    if (!_isScanning || _isProcessing) return; // stop if scanning is off or already processing
+
+    final List<Barcode> barcodes = capture.barcodes;
+    for (final barcode in barcodes) {
+      final String? code = barcode.rawValue;
+      if (code != null) {
+        setState(() {
+          _isProcessing = true; // lock
+          _isScanning = false;  // stop scanning
+        });
+
+        controller.stop();
+
+        // Navigate to another page
+        Navigator.pushNamed(
+          context,
+          '/scanneddetails',
+          arguments: code,
+        ).then((_) {
+          // when coming back, unlock so user can start scanning manually
+          setState(() {
+            _isProcessing = false;
+          });
+        });
+
+        break;
+      }
+    }
+  }
+
+  void _startScan() {
+    setState(() {
+      _isScanning = true;
+    });
+    controller.start();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
         children: [
-          // Camera preview with QR scanner
           MobileScanner(
-            onDetect: (capture) {
-              final List<Barcode> barcodes = capture.barcodes;
-              for (final barcode in barcodes) {
-                final String? code = barcode.rawValue;
-                if (code != null) {
-                  debugPrint('Scanned code: $code');
-                  Navigator.pushNamed(
-                    context,
-                    '/scanneddetails',
-                    arguments: code,
-                  );
-                  // Handle the scanned code here
-                  break; // Optional: stop after first valid scan
-                }
-              }
-            },
+            controller: controller,
+            onDetect: _onDetect,
           ),
 
           // Overlay UI
@@ -35,7 +73,6 @@ class QRScannerScreen extends StatelessWidget {
               color: Colors.black.withOpacity(0.4),
               child: Stack(
                 children: [
-                  // Back button
                   Positioned(
                     top: 40,
                     left: 16,
@@ -45,7 +82,6 @@ class QRScannerScreen extends StatelessWidget {
                     ),
                   ),
 
-                  // Instructional text
                   Positioned(
                     top: 100,
                     left: 0,
@@ -72,7 +108,6 @@ class QRScannerScreen extends StatelessWidget {
                     ),
                   ),
 
-                  // Scan area with yellow brackets
                   Center(
                     child: SizedBox(
                       width: 250,
@@ -82,6 +117,25 @@ class QRScannerScreen extends StatelessWidget {
                       ),
                     ),
                   ),
+
+                  // Manual start button
+                  if (!_isScanning && !_isProcessing)
+                    Positioned(
+                      bottom: 50,
+                      left: 0,
+                      right: 0,
+                      child: Center(
+                        child: ElevatedButton.icon(
+                          onPressed: _startScan,
+                          icon: const Icon(Icons.qr_code_scanner),
+                          label: const Text("Start Scan"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.yellow,
+                            foregroundColor: Colors.black,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -92,7 +146,6 @@ class QRScannerScreen extends StatelessWidget {
   }
 }
 
-// 🎨 Custom painter for yellow corner brackets
 class ScanAreaPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {

@@ -168,7 +168,7 @@ class _RedeemedListState extends State<RedeemedListScreen> {
                                     ),
                                     const SizedBox(height: 8),
                                     CustomButton(
-                                      text: item["status"] ?? "Unknown",
+                                      text: item["payment_status"] ?? "Unknown",
                                       fontSize: 16,
                                       horizontalvalue: 50,
                                       backgroundColor: _getStatusColor(item["status"]),

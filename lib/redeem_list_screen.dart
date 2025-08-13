@@ -147,8 +147,30 @@ class _RedeemListScreenState extends State<RedeemListScreen> {
                     horizontalvalue: 50,
                     backgroundColor: redcolor,
                     textColor: Colors.white,
-                    onPressed: () {
-                      // Call redeem API here
+                    onPressed: () async {
+                      {
+                        final api = ApiService();
+                        final couponId = item["coupon_id"] ?? "0"; // fallback in case API doesn't return
+                        final result = await api.redeemCoupon(couponId);
+
+                        if (result["success"] == "true") {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(result["message"] ?? "Redeemed successfully")),
+                          );
+                          setState(() async {
+                            final api = ApiService();
+                            final list = await api.getRedeemableList();
+                            setState(() {
+                              redeemableList = list;
+                              isLoading = false;
+                              });
+                          });
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(result["message"] ?? "Redeem failed")),
+                          );
+                        }
+                      }
                     },
                     prefixImage: "assets/images/non_open_gift.png",
                   ),

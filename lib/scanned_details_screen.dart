@@ -16,17 +16,22 @@ class ScannedDetailsScreen extends StatefulWidget {
 class _ScannedDetailsScreenState extends State<ScannedDetailsScreen> {
   Map<String, dynamic>? details;
   bool isLoading = true;
+  late String scannedData;
+  bool _isInitialized = false; // to ensure it runs only once
 
   @override
-  void initState() {
-    super.initState();
-    _fetchDetails();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      scannedData = ModalRoute.of(context)?.settings.arguments as String;
+      _fetchDetails();
+      _isInitialized = true;
+    }
   }
 
   Future<void> _fetchDetails() async {
     final api = ApiService();
-    final data = await api.scanDetails();
-    print(data);
+    final data = await api.scanDetails(scannedData);
     setState(() {
       details = data;
       isLoading = false;
@@ -35,9 +40,6 @@ class _ScannedDetailsScreenState extends State<ScannedDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final String scannedData =
-    ModalRoute.of(context)?.settings.arguments as String;
-
     if (isLoading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -46,9 +48,19 @@ class _ScannedDetailsScreenState extends State<ScannedDetailsScreen> {
 
     if (details == null || details!["success"] != "true") {
       return Scaffold(
-        body: Center(child: CustomButton(text: details!["message"], horizontalvalue: 50, fontSize: 18, backgroundColor: redcolor, textColor: Colors.white, onPressed: (){
-          Navigator.pop(context);
-        },prefixIcon: Icons.arrow_back_ios,)),
+        body: Center(
+          child: CustomButton(
+            text: details?["message"] ?? "Something went wrong",
+            horizontalvalue: 50,
+            fontSize: 18,
+            backgroundColor: redcolor,
+            textColor: Colors.white,
+            onPressed: () {
+              Navigator.pop(context);
+            },
+            prefixIcon: Icons.arrow_back_ios,
+          ),
+        ),
       );
     }
 
@@ -147,18 +159,18 @@ class _ScannedDetailsScreenState extends State<ScannedDetailsScreen> {
               fontSize: 16,
               onPressed: () async {
                 final api = ApiService();
-                final couponId = details!["coupon_id"] ?? "2"; // fallback in case API doesn't return
+                final couponId = details!["coupon_id"] ?? "2";
                 final result = await api.redeemCoupon(couponId);
 
-                if (result["success"] == "true") {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(result["message"] ?? "Redeemed successfully")),
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(result["message"] ?? "Redeem failed")),
-                  );
-                }
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(result["message"] ??
+                        (result["success"] == "true"
+                            ? "Redeemed successfully"
+                            : "Redeem failed")),
+                  ),
+                );
+                Navigator.pop(context);
               },
             ),
           ],
