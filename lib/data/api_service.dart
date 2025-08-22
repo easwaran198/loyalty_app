@@ -154,29 +154,13 @@ class ApiService {
 
     return json.decode(response.body);
   }
-  Future<List<dynamic>> fetchRedeemableList() async {
-    final prefs = await SharedPreferences.getInstance();
-    final userid = prefs.getString("userid") ?? "";
-
-    final response = await http.post(
-      Uri.parse("$baseUrl/redeemable_list"),
-      headers: {"Content-Type": "application/json"},
-      body: json.encode({"userid": userid}),
-    );
-
-    final data = json.decode(response.body);
-    if (data["success"] == "true") {
-      return data["redeemable_list"] ?? [];
-    } else {
-      return [];
-    }
-  }
 
   Future<List<dynamic>> getRedeemableList() async {
     final prefs = await SharedPreferences.getInstance();
     final userid = prefs.getString("userid") ?? "";
     final token = prefs.getString("token") ?? "";
 
+    print(token);
     final response = await http.post(
       Uri.parse("$baseUrl/redeemable_list"),
       headers: {
@@ -199,7 +183,7 @@ class ApiService {
     final token = prefs.getString("token") ?? "";
 
     final response = await http.post(
-      Uri.parse("$baseUrl/redeemable_list"),
+      Uri.parse("$baseUrl/redeemed_list"),
       headers: {
         "Content-Type": "application/json",
         "token": "$token",
@@ -207,9 +191,10 @@ class ApiService {
       body: json.encode({"userid": userid}),
     );
 
+    print(response.body);
     final data = json.decode(response.body);
     if (data["success"] == "true") {
-      return data["redeemable_list"] ?? [];
+      return data["redeemed_list"] ?? [];
     } else {
       throw Exception(data["message"] ?? "Failed to load redeemable list");
     }

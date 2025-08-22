@@ -8,6 +8,7 @@ import 'package:loyalty_app/data/api_service.dart';
 import 'package:loyalty_app/splash/custom_text.dart';
 
 class RedeemListScreen extends StatefulWidget {
+
   @override
   State<RedeemListScreen> createState() => _RedeemListScreenState();
 }
@@ -19,6 +20,7 @@ class _RedeemListScreenState extends State<RedeemListScreen> {
   @override
   void initState() {
     super.initState();
+
     _fetchRedeemableList();
   }
 
@@ -39,6 +41,7 @@ class _RedeemListScreenState extends State<RedeemListScreen> {
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     if (isLoading) {
       return const Scaffold(
@@ -48,23 +51,32 @@ class _RedeemListScreenState extends State<RedeemListScreen> {
 
     return SafeArea(
       child: Scaffold(
-        body: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child: ListView.builder(
+        body: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(),
+
+              // Add spacing if needed
+              const SizedBox(height: 16),
+
+              // Redeemable List
+              ListView.builder(
+                shrinkWrap: true,
+                physics: NeverScrollableScrollPhysics(),
                 itemCount: redeemableList.length,
                 itemBuilder: (context, index) {
                   final item = redeemableList[index];
                   return _buildRedeemCard(item);
                 },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+
 
   Widget _buildHeader() {
     return Container(
@@ -89,98 +101,104 @@ class _RedeemListScreenState extends State<RedeemListScreen> {
   }
 
   Widget _buildRedeemCard(Map<String, dynamic> item) {
+    var screenWidth = MediaQuery.of(context).size.width;
+    var screenHeight = MediaQuery.of(context).size.height;
+
     final redeemed = item["redeem_status"] == "1";
-    return Column(
-      children: [
-        CustomDateHeader(text: item["scan_date"]),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.black, width: 1.5),
-          ),
-          margin: EdgeInsets.all(10),
-          child: Row(
-            children: [
-              Container(
-                width: MediaQuery.of(context).size.width * 0.35,
-                margin: EdgeInsets.symmetric(horizontal: 10),
-                child: Column(
+    return Container(
+      height: screenHeight*0.32,
+      child: Column(
+        children: [
+          CustomDateHeader(text: item["scan_date"]),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.black, width: 1.5),
+            ),
+            margin: EdgeInsets.all(10),
+            child: Row(
+              children: [
+                Container(
+                  width: MediaQuery.of(context).size.width * 0.35,
+                  margin: EdgeInsets.symmetric(horizontal: 10),
+                  child: Column(
+                    children: [
+                      Image.asset("assets/images/qr_image.png"),
+                      HeadingText(
+                        color: Colors.black,
+                        text: "CPN-${item["coupon_id"]}",
+                        fontSize: 17,
+                      ),
+                      SizedBox(height: 10),
+                    ],
+                  ),
+                ),
+                Column(
                   children: [
-                    Image.asset("assets/images/qr_image.png"),
-                    HeadingText(
-                      color: Colors.black,
-                      text: "CPN-${item["coupon_id"]}",
-                      fontSize: 17,
+                    CustomKeyValueContainerWithoutBg(
+                      label: HeadingText(color: Colors.black, text: "Product", fontSize: 15),
+                      value: HeadingText(color: Colors.orange, text: item["product_name"], fontSize: 14),
+                    ),
+                    CustomKeyValueContainerWithoutBg(
+                      label: HeadingText(color: Colors.black, text: "Pack Size", fontSize: 15),
+                      value: HeadingText(color: Colors.blue, text: item["pack_size"], fontSize: 14),
+                    ),
+                    CustomKeyValueContainerWithoutBg(
+                      label: HeadingText(color: Colors.black, text: "Amount", fontSize: 15),
+                      value: HeadingText(color: Colors.green, text: "${item["incentive_amount"]} ₹", fontSize: 14),
+                    ),
+                    SizedBox(height: 8),
+                    redeemed
+                        ? CustomButton(
+                      text: "Amount credited in ${item["days"] ?? '-'} days",
+                      fontSize: 12,
+                      horizontalvalue: 13,
+                      backgroundColor: yellowColor,
+                      textColor: Colors.black,
+                      onPressed: () {},
+                    )
+                        : CustomButton(
+                      text: "Redeem",
+                      fontSize: 16,
+                      horizontalvalue: 50,
+                      backgroundColor: redcolor,
+                      textColor: Colors.white,
+                      onPressed: () async {
+                        {
+                          final api = ApiService();
+                          final couponId = item["coupon_id"] ?? "0"; // fallback in case API doesn't return
+                          final result = await api.redeemCoupon(couponId);
+
+                          if (result["success"] == "true") {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(result["message"] ?? "Redeemed successfully")),
+                            );
+                            setState(() async {
+                              final api = ApiService();
+                              final list = await api.getRedeemableList();
+                              setState(() {
+                                redeemableList = list;
+                                isLoading = false;
+                                });
+                            });
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(result["message"] ?? "Redeem failed")),
+                            );
+                          }
+                        }
+                      },
+                      prefixImage: "assets/images/non_open_gift.png",
                     ),
                     SizedBox(height: 10),
                   ],
                 ),
-              ),
-              Column(
-                children: [
-                  CustomKeyValueContainerWithoutBg(
-                    label: HeadingText(color: Colors.black, text: "Product", fontSize: 15),
-                    value: HeadingText(color: Colors.orange, text: item["product_name"], fontSize: 14),
-                  ),
-                  CustomKeyValueContainerWithoutBg(
-                    label: HeadingText(color: Colors.black, text: "Pack Size", fontSize: 15),
-                    value: HeadingText(color: Colors.blue, text: item["pack_size"], fontSize: 14),
-                  ),
-                  CustomKeyValueContainerWithoutBg(
-                    label: HeadingText(color: Colors.black, text: "Amount", fontSize: 15),
-                    value: HeadingText(color: Colors.green, text: "${item["incentive_amount"]} ₹", fontSize: 14),
-                  ),
-                  SizedBox(height: 8),
-                  redeemed
-                      ? CustomButton(
-                    text: "Amount credited in ${item["days"] ?? '-'} days",
-                    fontSize: 12,
-                    horizontalvalue: 13,
-                    backgroundColor: yellowColor,
-                    textColor: Colors.black,
-                    onPressed: () {},
-                  )
-                      : CustomButton(
-                    text: "Redeem",
-                    fontSize: 16,
-                    horizontalvalue: 50,
-                    backgroundColor: redcolor,
-                    textColor: Colors.white,
-                    onPressed: () async {
-                      {
-                        final api = ApiService();
-                        final couponId = item["coupon_id"] ?? "0"; // fallback in case API doesn't return
-                        final result = await api.redeemCoupon(couponId);
-
-                        if (result["success"] == "true") {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(result["message"] ?? "Redeemed successfully")),
-                          );
-                          setState(() async {
-                            final api = ApiService();
-                            final list = await api.getRedeemableList();
-                            setState(() {
-                              redeemableList = list;
-                              isLoading = false;
-                              });
-                          });
-                        } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(result["message"] ?? "Redeem failed")),
-                          );
-                        }
-                      }
-                    },
-                    prefixImage: "assets/images/non_open_gift.png",
-                  ),
-                  SizedBox(height: 10),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

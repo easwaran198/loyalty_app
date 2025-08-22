@@ -34,9 +34,19 @@ class _RedeemedListState extends State<RedeemedListScreen> {
               return const Center(child: CircularProgressIndicator());
             } else if (snapshot.hasError) {
               return Center(
-                child: Text(
-                  "Error: ${snapshot.error}",
-                  style: const TextStyle(color: Colors.red),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: CustomButton(
+                    text: "${snapshot.error}\n-click here and go back",
+                    prefixIcon: Icons.arrow_circle_left,
+                    horizontalvalue: 50,
+                    fontSize: 16,
+                    backgroundColor: redcolor,
+                    textColor: Colors.white,
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
                 ),
               );
             } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
@@ -52,10 +62,12 @@ class _RedeemedListState extends State<RedeemedListScreen> {
 
             return SingleChildScrollView(
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
                     color: const Color(0xffFF0000),
                     height: 100,
+                    width: double.infinity,
                     child: Row(
                       children: [
                         const SizedBox(width: 20),
@@ -72,125 +84,141 @@ class _RedeemedListState extends State<RedeemedListScreen> {
                       ],
                     ),
                   ),
-                  ...redeemedList.map((item) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        CustomDateHeader(text: item["scan_date"] ?? "Unknown Date"),
-                        Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: const BorderRadius.all(Radius.circular(10)),
-                            border: Border.all(color: Colors.black, width: 1.5),
-                          ),
-                          margin: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: screenWidth * 0.35,
-                                margin: const EdgeInsets.symmetric(horizontal: 10),
-                                child: Column(
-                                  children: [
-                                    Image.asset("assets/images/qr_image.png"),
-                                    HeadingText(
-                                      color: Colors.black,
-                                      text: item["coupon_code"] ?? "",
-                                      fontSize: 17,
-                                    ),
-                                    const SizedBox(height: 10),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(
-                                width: screenWidth * 0.54,
-                                child: Column(
-                                  children: [
-                                    const SizedBox(height: 5),
-                                    CustomKeyValueContainerWithoutBg(
-                                      label: HeadingText(
-                                          color: Colors.black,
-                                          text: "Product name",
-                                          fontSize: 14),
-                                      value: HeadingText(
-                                          color: Colors.grey,
-                                          text: item["product_name"] ?? "",
-                                          fontSize: 13),
-                                    ),
-                                    CustomKeyValueContainerWithoutBg(
-                                      label: HeadingText(
-                                          color: Colors.black,
-                                          text: "Coupon id",
-                                          fontSize: 14),
-                                      value: HeadingText(
-                                          color: Colors.grey,
-                                          text: item["coupon_id"] ?? "",
-                                          fontSize: 13),
-                                    ),
-                                    CustomKeyValueContainerWithoutBg(
-                                      label: HeadingText(
-                                          color: Colors.black,
-                                          text: "Offer amount",
-                                          fontSize: 14),
-                                      value: HeadingText(
-                                          color: Colors.green,
-                                          text: "${item["incentive_amount"] ?? 0} ₹",
-                                          fontSize: 13),
-                                    ),
-                                    CustomKeyValueContainerWithoutBg(
-                                      label: HeadingText(
-                                          color: Colors.black,
-                                          text: "Pack size",
-                                          fontSize: 14),
-                                      value: HeadingText(
-                                          color: Colors.red,
-                                          text: item["pack_size"] ?? "",
-                                          fontSize: 13),
-                                    ),
-                                    CustomKeyValueContainerWithoutBg(
-                                      label: HeadingText(
-                                          color: Colors.black,
-                                          text: "UPI Id",
-                                          fontSize: 14),
-                                      value: HeadingText(
-                                          color: Colors.blue,
-                                          text: item["sender_upi_id"] ?? "",
-                                          fontSize: 13),
-                                    ),
-                                    CustomKeyValueContainerWithoutBg(
-                                      label: HeadingText(
-                                          color: Colors.black,
-                                          text: "Transaction id",
-                                          fontSize: 14),
-                                      value: HeadingText(
-                                          color: Colors.grey,
-                                          text: item["transaction_id"] ?? "",
-                                          fontSize: 13),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    CustomButton(
-                                      text: item["payment_status"] ?? "Unknown",
-                                      fontSize: 16,
-                                      horizontalvalue: 50,
-                                      backgroundColor: _getStatusColor(item["status"]),
-                                      textColor: Colors.white,
-                                      onPressed: () {},
-                                    ),
-                                    const SizedBox(height: 10),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    );
-                  }).toList(),
+                  // Build each item separately to avoid nesting issues
+                  for (var item in redeemedList)
+                    _buildRedeemedItem(context, item, screenWidth),
                   const SizedBox(height: 20),
                 ],
               ),
             );
           },
         ),
+      ),
+    );
+  }
+
+  Widget _buildRedeemedItem(BuildContext context, dynamic item, double screenWidth) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CustomDateHeader(text: item["scan_date"] ?? "Unknown Date"),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: const BorderRadius.all(Radius.circular(10)),
+            border: Border.all(color: Colors.black, width: 1.5),
+          ),
+          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: screenWidth * 0.35,
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Image.asset(
+                        "assets/images/qr_image.png",
+                        width: screenWidth * 0.25,
+                        height: screenWidth * 0.25,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(height: 8),
+                      HeadingText(
+                        color: Colors.black,
+                        text: item["coupon_code"] ?? "",
+                        fontSize: 17,
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: screenWidth * 0.54,
+                  padding: const EdgeInsets.all(10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 5),
+                      _buildKeyValuePair(
+                        "Product name",
+                        item["product_name"] ?? "",
+                        Colors.black,
+                        Colors.grey,
+                      ),
+                      _buildKeyValuePair(
+                        "Coupon id",
+                        item["coupon_id"] ?? "",
+                        Colors.black,
+                        Colors.grey,
+                      ),
+                      _buildKeyValuePair(
+                        "Offer amount",
+                        "${item["incentive_amount"] ?? 0} ₹",
+                        Colors.black,
+                        Colors.green,
+                      ),
+                      _buildKeyValuePair(
+                        "Pack size",
+                        item["pack_size"] ?? "",
+                        Colors.black,
+                        Colors.red,
+                      ),
+                      _buildKeyValuePair(
+                        "UPI Id",
+                        item["sender_upi_id"] ?? "",
+                        Colors.black,
+                        Colors.blue,
+                      ),
+                      _buildKeyValuePair(
+                        "Transaction id",
+                        item["transaction_id"] ?? "",
+                        Colors.black,
+                        Colors.grey,
+                      ),
+                      const SizedBox(height: 8),
+                      CustomButton(
+                        text: item["payment_status"] ?? "Unknown",
+                        fontSize: 16,
+                        horizontalvalue: 50,
+                        backgroundColor: _getStatusColor(item["status"]),
+                        textColor: Colors.white,
+                        onPressed: () {},
+                      ),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildKeyValuePair(String label, String value, Color labelColor, Color valueColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          HeadingText(
+            color: labelColor,
+            text: label,
+            fontSize: 14,
+          ),
+          const SizedBox(height: 2),
+          HeadingText(
+            color: valueColor,
+            text: value,
+            fontSize: 13,
+          ),
+          const SizedBox(height: 4),
+        ],
       ),
     );
   }
