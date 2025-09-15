@@ -25,6 +25,7 @@ class _QRScannerScreenState extends State<QRScannerScreen> {
     final List<Barcode> barcodes = capture.barcodes;
     for (final barcode in barcodes) {
       final String? code = barcode.rawValue;
+      print("code-$code");
       if (code != null) {
         setState(() {
           _isProcessing = true; // lock

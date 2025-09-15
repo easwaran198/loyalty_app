@@ -26,14 +26,10 @@ class SplashScreen extends StatelessWidget {
             child: Container(
               color: Colors.white,
               child: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children:  [
-                    Image.asset("assets/images/loyalty_logo.png"),
-                   // SizedBox(height: 30),
-                   // CircularProgressIndicator(),
-                  ],
-                ),
+                child: Container(
+                    height: 200,
+                    width: 200,
+                    child: Image.asset("assets/images/loyalty_logo.png")),
               ),
             ),
           ),

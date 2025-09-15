@@ -159,7 +159,7 @@ class _ScannedDetailsScreenState extends State<ScannedDetailsScreen> {
               fontSize: 16,
               onPressed: () async {
                 final api = ApiService();
-                final couponId = details!["coupon_id"] ?? "2";
+                final couponId = details!["coupon_id"].toString() ?? "2";
                 final result = await api.redeemCoupon(couponId);
 
                 ScaffoldMessenger.of(context).showSnackBar(

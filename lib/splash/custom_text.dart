@@ -20,7 +20,7 @@ class HeadingText extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: GoogleFonts.comicNeue(
+      style: GoogleFonts.roboto(
         fontSize: fontSize,
         color: color,
         fontWeight: fontWeight,
