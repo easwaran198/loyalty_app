@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'auth_event.dart';
@@ -29,7 +30,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
   Future<void> _onLoginRequested(LoginRequested event, Emitter<AuthState> emit) async {
     emit(AuthLoading());
+    String deviceKey = "";
+
     try {
+
       final response = await apiService.login(event.mobileno);
       if (response["success"] == "true") {
         emit(AuthSuccess("Login Successful",response["otp"]));

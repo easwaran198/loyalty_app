@@ -5,9 +5,9 @@ import 'package:loyalty_app/constants/custom_button.dart';
 import 'package:loyalty_app/constants/custom_text_lora.dart';
 import 'package:loyalty_app/data/api_service.dart';
 import 'package:loyalty_app/data/models/MyprofileRes.dart';
-import 'package:loyalty_app/feature/auth/screens/register_screen.dart';
 import 'package:loyalty_app/profile_screen.dart';
 import 'package:loyalty_app/splash/custom_text.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -51,7 +51,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _startAutoSlide() {
-    _timer = Timer.periodic(Duration(seconds: 2), (timer) {
+    _timer = Timer.periodic(Duration(seconds: 4), (timer) {
       if (_pageController.hasClients && myprofileRes.sliderImages != null && myprofileRes.sliderImages!.isNotEmpty) {
         int nextPage = _currentPage + 1;
         if (nextPage >= myprofileRes.sliderImages!.length) {
@@ -100,16 +100,23 @@ class _HomeScreenState extends State<HomeScreen> {
                 leading: Icon(Icons.category),
                 title: Text('Product Catalog'),
                 onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterScreen()));
+                  //Navigator.pop(context);
+                  //Navigator.push(context, MaterialPageRoute(builder: (context) => RegisterScreen()));
                 },
               ),
               ListTile(
                 leading: Icon(Icons.check_circle),
                 title: Text('Completed Sites'),
                 onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
+                  //Navigator.pop(context);
+                 // Navigator.push(context, MaterialPageRoute(builder: (context) => ProfileScreen()));
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.login_outlined),
+                title: Text('Logout'),
+                onTap: () {
+                  logout(context);
                 },
               ),
             ],
@@ -171,7 +178,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(
                           children: [
                             Container(
-                              width: screenWidth * 0.4,
+                              width: screenWidth * 0.39,
                               margin: EdgeInsets.only(left: 20),
                               padding: EdgeInsets.all(10),
                               decoration: BoxDecoration(
@@ -193,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             Container(
                               width: screenWidth * 0.39,
-                              margin: EdgeInsets.only(right: 20),
+                              margin: EdgeInsets.only(right: 10),
                               padding: EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                 color: Color(0xffFF5F2A),
@@ -202,7 +209,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               child: Column(
                                 children: [
-                                  HeadingText(color: Colors.black, text: "Yesterday Earnings", fontSize: 14),
+                                  HeadingText(color: Colors.black, text: "Yesterday Earnings", fontSize: 13),
                                   Image.asset("assets/images/money_bag.png"),
                                   HeadingText(
                                       color: Colors.white,
@@ -253,7 +260,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                             Container(
                               width: screenWidth * 0.39,
-                              margin: EdgeInsets.only(right: 20),
+                              margin: EdgeInsets.only(right: 10),
                               padding: EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                 color: Color(0xffF42AFF),
@@ -417,4 +424,41 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  Future<void> logout(BuildContext context) async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Logout"),
+        content: Text("Are you sure you want to logout?"),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Close dialog
+            },
+            child: Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () async {
+              // Clear stored data
+              final prefs = await SharedPreferences.getInstance();
+              await prefs.remove("userid");
+              await prefs.remove("token");
+
+              Navigator.of(context).pop(); // Close dialog
+
+              // You can emit a new state or navigate
+              // For example, navigate to login screen:
+              Navigator.of(context).pushReplacementNamed('/login');
+
+              // OR emit state if using Bloc
+              // context.read<SplashBloc>().add(SplashLogoutEvent());
+            },
+            child: Text("Logout"),
+          ),
+        ],
+      ),
+    );
+  }
+
 }

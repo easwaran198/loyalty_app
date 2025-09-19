@@ -1,7 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:loyalty_app/data/models/MyprofileRes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:uuid/uuid.dart';
 
 class ApiService {
   //static const baseUrl = "https://ttbilling.in/loyaltyapp/api";
@@ -65,16 +67,34 @@ class ApiService {
     return json.decode(response.body);
   }
 
+  Future<String> getDeviceKey() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? deviceKey = prefs.getString('devicekey');
+
+    if (deviceKey == null) {
+      deviceKey = Uuid().v4(); // Generate a new UUID
+      await prefs.setString('devicekey', deviceKey); // Save it
+    }
+
+    return deviceKey;
+  }
+
   Future<Map<String, dynamic>> login(String mobileno) async {
-    var request = {"mobileno": mobileno};
+    String deviceKey = await getDeviceKey();
+
+    var request = {
+      "mobileno": mobileno,
+      "device_key": deviceKey,
+    };
+
     final response = await http.post(
       Uri.parse("$baseUrl/sendotp"),
       headers: {"Content-Type": "application/json"},
       body: json.encode(request),
     );
-    print("object-$baseUrl/sendotp");
-    print(json.encode(request));
-    print(response.body);
+
+    print("Request Body: ${json.encode(request)}");
+    print("Response Body: ${response.body}");
 
     return json.decode(response.body);
   }

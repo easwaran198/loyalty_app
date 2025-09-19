@@ -98,11 +98,11 @@ class LoginScreen extends StatelessWidget {
                       },
                     ),
                     SizedBox(height: 15,),
-                    InkWell(
+                    /*InkWell(
                         onTap: (){
                           Navigator.pushNamed(context, "/register");
                         },
-                        child: Text("Register",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 22),))
+                        child: Text("Register",style: TextStyle(fontWeight: FontWeight.bold,fontSize: 22),))*/
                   ],
                 ),
               ),

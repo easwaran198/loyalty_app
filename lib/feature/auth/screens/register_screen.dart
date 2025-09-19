@@ -75,12 +75,13 @@ class RegisterScreenState extends State<RegisterScreen> {
                 }
               },
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.only(left: 15,right: 15),
                 child: Column(
                   children: [
-                    SizedBox(height: 20),
-                    Image.asset("assets/images/loyalty_logo.png"),
-                    SizedBox(height: 20),
+                    Container(
+                      width: 200,
+                        height:  180,
+                        child: Image.asset("assets/images/loyalty_logo.png")),
                     HeadingText(text: "Create an Account",color: Colors.black,fontSize: 24,),
                     SizedBox(height: 20),
                     Container(

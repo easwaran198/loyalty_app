@@ -2,10 +2,10 @@ class MyprofileRes {
   String? success;
   String? error;
   String? message;
-  String? todayEarnings;
-  String? yesterdayEarnings;
-  String? thisMonthEarnings;
-  String? preMonthEarnings;
+  dynamic? todayEarnings;
+  dynamic? yesterdayEarnings;
+  dynamic? thisMonthEarnings;
+  dynamic? preMonthEarnings;
   List<SliderImages>? sliderImages;
   String? id;
   String? name;

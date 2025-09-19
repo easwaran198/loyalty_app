@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:loyalty_app/constants/custom_button.dart';
 import 'package:loyalty_app/constants/custom_field.dart';
 import 'package:loyalty_app/constants/custom_radio_group.dart';
@@ -16,6 +18,9 @@ class ProfileScreen extends StatefulWidget {
 class ProfileScreenState extends State<ProfileScreen> {
   var myprofileRes = MyprofileRes();
   final ApiService _apiService = ApiService();
+  File? _imageFile;
+  final ImagePicker _picker = ImagePicker();
+  String? base64Image;
 
   @override
   void initState() {
@@ -158,6 +163,83 @@ class ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await _picker.pickImage(source: source, imageQuality: 80);
+
+    if (pickedFile != null) {
+      final file = File(pickedFile.path);
+      final bytes = await file.readAsBytes();
+      final base64Str = base64Encode(bytes);
+      setState(() {
+        _imageFile = file;
+        base64Image = base64Str;
+      });
+
+      Map<String, dynamic> request = {
+        /*"name": myprofileRes.name,
+        "gender": myprofileRes.gender,
+        "mobileno": myprofileRes.mobileno,
+        "aadhar_img": myprofileRes.proof![0].aadharImg,
+        "aadhar_no": myprofileRes.aadharNo,
+        "pan_img": myprofileRes.proof![0].panImg,
+        "pan_no": myprofileRes.panNo,
+        "bank_pass_img": myprofileRes.proof![0].bankPassImg,
+        "acc_no": myprofileRes.accNo,
+        "bank_name": myprofileRes.bankName,
+        "ifsc_code": myprofileRes.ifscCode,
+        "branch_name": myprofileRes.branchName,
+        "upi_id": myprofileRes.upiId,
+        "upi_mobile_no": myprofileRes.upiMobileNo,
+        "dob": myprofileRes.dob,
+        "marital_status": myprofileRes.maritalStatus,
+        "anniversary_date": myprofileRes.anniversaryDate,
+        "address": myprofileRes.address,
+        "pincode": myprofileRes.pincode*/
+        "profile_img": base64Image
+      };
+
+      print(json.encode(request));
+      bool success = await _apiService.updateProfile(request);
+
+      if (success) {
+        Navigator.pop(context);
+        loadProfile();
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Profile updated successfully")));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Failed to update profile")));
+      }
+
+      print("Base64 Image String: $base64Image");
+    }
+  }
+  void _showImageSourceActionSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: Icon(Icons.camera_alt),
+              title: Text("Take a photo"),
+              onTap: () {
+                Navigator.of(context).pop();
+                _pickImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.photo_library),
+              title: Text("Choose from gallery"),
+              onTap: () {
+                Navigator.of(context).pop();
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -171,9 +253,37 @@ class ProfileScreenState extends State<ProfileScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 SizedBox(height: 10),
-                CircleAvatar(
-                  radius: 50,
-                  backgroundImage: AssetImage("assets/images/profile_img.jpg"),
+                if(myprofileRes.proof != null)
+                Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundImage: _imageFile != null
+                          ? FileImage(_imageFile!)
+                          : NetworkImage(myprofileRes.proof![0].profileImg!) as ImageProvider,
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: GestureDetector(
+                        onTap: _showImageSourceActionSheet,
+                        child: Container(
+                          height: 30,
+                          width: 30,
+                          decoration: BoxDecoration(
+                            color: Colors.blue,
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: Icon(
+                            Icons.edit,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
                 ),
                 SizedBox(height: 20),
                 CustomProfileContainer(
@@ -185,7 +295,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                   value: HeadingText(color:                          Colors.green, text: myprofileRes.emailid ?? "", fontSize: 19),
                 ),*/
                 CustomProfileContainer(
-                  label: HeadingText(color: Colors.black, text: "Aadha  r number", fontSize: 17),
+                  label: HeadingText(color: Colors.black, text: "Aadhaar number", fontSize: 17),
                   value: HeadingText(color: Colors.green, text: myprofileRes.aadharNo ?? "", fontSize: 19),
                 ),
                 CustomProfileContainer(
@@ -237,7 +347,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                   value: HeadingText(color: Colors.green, text: myprofileRes.pincode ?? "", fontSize: 19),
                 ),
                 SizedBox(height: 20),
-                CustomButton(
+               /* CustomButton(
                   text: "Edit Profile",
                   horizontalvalue: 50,
                   fontSize: 20,
@@ -245,7 +355,7 @@ class ProfileScreenState extends State<ProfileScreen> {
                   textColor: Colors.white,
                   onPressed: showEditProfileDialog,
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: 10),*/
                 CustomButton(
                   text: "Back",
                   horizontalvalue: 50,
